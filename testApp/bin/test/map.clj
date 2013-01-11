@@ -34,13 +34,8 @@
       (recur x y hashmap)
       rndPos)))
 
-(defn placeSystems
-  ([systemM nr]
-    (placeSystems (assoc systemM (getRandPos mapX mapY @sysMap) (createSystem (rand-nth systemName))) nr 1))
-  ([systemM nr i]
-    (if (< i nr)
-      (recur (assoc systemM  (getRandPos mapX mapY @sysMap)(createSystem (rand-nth systemName))) nr (inc i))
-      systemM)))
+(defn placeSystems [nr]
+  (take nr (lazy-seq (createSystem (rand-nth systemName)))))
 
 (defn createMap [x y]
   (reset! sysMap (placeSystems @sysMap 5))
