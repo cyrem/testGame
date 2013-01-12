@@ -7,11 +7,15 @@
   (get hashmap (rand-nth (keys hashmap))))
 
 (defn getUniqueRndKey [nr col]
-  (let [k (keys col)]
-    (loop [nr nr
-           keys k
-           acu '()]
-      (if (> nr 0)
-        (let [rndk (rand-nth keys)]
-          (recur (dec nr) (dissoc keys rndk) (lazy-seq rndk)))
-        acu))))
+  (assert (<= nr (count col)) "mehr items als col hat")
+  (let [recurFunc (fn [nr keyMap acu i]
+                    (let [item (rand-nth keyMap)]
+                      (println item)
+                      (if (< i nr)
+                        (recur nr (filterv #(not (= item %)) keyMap) (conj acu item) (inc i))
+                        (conj acu item))))]
+    (recurFunc nr (into [] (map #(first %) col)) [] 1)))
+
+
+
+
