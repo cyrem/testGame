@@ -1,30 +1,21 @@
-(ns test.map)
-(use test.util)
-
-
-(def mapX 200)
-(def mapY 200)
-(def planetNr (Math/pow (+ mapX mapY) 2))
+(ns test.map
+  (:require [test.util :as test]))
 
 (def planetFeatures {"c" 0 "d" 0})
 (def planetClasses  {"a" "b"})
 (def systemName ["blub" "sadf"])
 (def systemFeatures ["asdf" "fghf"])
 
-(def sysMap (atom (hash-map)))
-
 (defrecord system [name planets solarStr features])
-(defrecord planet [name class size features])
+(defrecord planet [class size features])
 
 
-
-(defn createPlanet [name]
-  (planet. name (hash-nth planetClasses) (rand-int1 8) (hash-nth planetFeatures)))
+(defn createPlanet []
+  (planet. (hash-nth planetClasses) (rand-int1 8) (hash-nth planetFeatures)))
 
 (defn createSystem [name]
   (system. name
-           (into {} (dotimes [i (rand-int1 4)]
-                      (createPlanet name)))
+           (assoc (hash-map) (take (rand-int1 4) (createPlanet)))
            (rand-int1 8)
            (rand-nth systemFeatures)))
 
@@ -37,8 +28,6 @@
 (defn placeSystems [nr]
   (take nr (lazy-seq (createSystem (rand-nth systemName)))))
 
-(defn createMap [x y]
-  (reset! sysMap (placeSystems @sysMap 5))
-  (println @sysMap))
+(defn createMap [x y anzSysteme])
 
 
