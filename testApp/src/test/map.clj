@@ -1,5 +1,5 @@
 (ns test.map
-  (:require [test.util :as test]))
+  (:require [test.util :as util]))
 
 (def planetFeatures {"c" 0 "d" 0})
 (def planetClasses  {"a" "b"})
@@ -11,16 +11,16 @@
 
 
 (defn createPlanet []
-  (planet. (hash-nth planetClasses) (rand-int1 8) (hash-nth planetFeatures)))
+  (planet. (util/hash-nth planetClasses) (util/rand-int1 8) (util/hash-nth planetFeatures)))
 
 (defn createSystem [name]
   (system. name
-           (assoc (hash-map) (take (rand-int1 4) (createPlanet)))
-           (rand-int1 8)
+           (assoc (hash-map) (take (util/rand-int1 4) (createPlanet)))
+           (util/rand-int1 8)
            (rand-nth systemFeatures)))
 
 (defn getRandPos [x y hashmap]
-  (let [rndPos (str (rand-int1 (dec x)) "-" (rand-int1 (dec y)))]
+  (let [rndPos (str (util/rand-int1 (dec x)) "-" (util/rand-int1 (dec y)))]
     (if (contains? hashmap rndPos)
       (recur x y hashmap)
       rndPos)))
