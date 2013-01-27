@@ -15,19 +15,18 @@
 
 (defn createSystem [name]
   (system. name
-           (assoc (hash-map) (take (util/rand-int1 4) (createPlanet)))
+           (into [] (for [_ (range (util/rand-int1 4))]
+                      (test.map/createPlanet)))
            (util/rand-int1 8)
            (rand-nth systemFeatures)))
 
-(defn getRandPos [x y hashmap]
-  (let [rndPos (str (util/rand-int1 (dec x)) "-" (util/rand-int1 (dec y)))]
-    (if (contains? hashmap rndPos)
-      (recur x y hashmap)
-      rndPos)))
 
 (defn placeSystems [nr]
-  (take nr (lazy-seq (createSystem (rand-nth systemName)))))
+  (createSystem (rand-nth systemName)))
 
-(defn createMap [x y anzSysteme])
+(defn createMap [x y anzSysteme]
+  ;hashmap mit [x y] vector als key
+  )
+
 
 
