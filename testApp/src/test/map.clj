@@ -6,6 +6,7 @@
 (def systemName ["blub" "sadf"])
 (def systemFeatures ["asdf" "fghf"])
 
+(defrecord universe [starMap systemList unitList civList])
 (defrecord system [name planets solarStr features])
 (defrecord planet [class size features])
 
@@ -21,12 +22,16 @@
            (rand-nth systemFeatures)))
 
 
-(defn placeSystems [nr]
-  (createSystem (rand-nth systemName)))
+(defn createMap [[dimX dimY]]
+ (into {} (for [x (range dimX)
+                y (range dimY)]
+            [[x y] (ref nil)])))
 
-(defn createMap [x y anzSysteme]
-  ;hashmap mit [x y] vector als key
-  )
+;(def testUni (universe. (createMap [20 20]) [] [] []))
 
-
+(defn placeSystems [nr uni]
+  (map (fn [refToLoc]
+           (sync nil
+                 (ref-set (get (:starMap uni) refToLoc) (createSystem (rand-nth systemName)))))
+         (test.util/getUniqueRndKey nr (:starMap uni))))
 
