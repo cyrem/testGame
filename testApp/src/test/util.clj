@@ -17,3 +17,6 @@
               (recur (filter #(not (= % item)) items) (dec n) (conj acu item))))))
 
 
+
+(defun retFileAsVector [path])
+

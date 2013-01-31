@@ -1,6 +1,8 @@
 (ns test.core)
 (use 'test.map)
 (use 'korma.db)
+(use 'org.xerial/sqlite-jdbc)
+
 
 (set! *warn-on-reflection* true)
 (defn -main
