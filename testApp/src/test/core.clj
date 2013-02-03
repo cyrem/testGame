@@ -1,8 +1,25 @@
-(ns test.core)
-(use 'test.map)
-(use 'korma.db)
-(use 'org.xerial/sqlite-jdbc)
+(ns test.core
+  (:use [seesaw.core]
+        [test.map]
+        [test.render]
+        [test.civ]
+        [korma.db]
+        ;[org.xerial/sqlite-jdbc]
+        ))
 
+
+
+
+
+
+(def gameWindow (frame :title "gameWindow"
+                       :content "test"
+                       :width 600
+                       :height 400
+                       :on-close :exit))
+(native!)
+
+(-> gameWindow (pack!) (show!))
 
 (set! *warn-on-reflection* true)
 (defn -main

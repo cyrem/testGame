@@ -18,5 +18,5 @@
 
 
 
-(defun retFileAsVector [path])
+(defn retFileAsVector [path])
 
