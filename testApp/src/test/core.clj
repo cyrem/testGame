@@ -1,9 +1,9 @@
 (ns test.core
-  (:use [seesaw.core]
-        [test.map]
-        [test.render]
-        [test.civ]
-        [korma.db]
+  (:use [seesaw core graphics]
+        test.map
+        test.render
+        test.civ
+        korma.db
         ;[org.xerial/sqlite-jdbc]
         ))
 
@@ -12,14 +12,15 @@
 
 
 
+
 (def gameWindow (frame :title "gameWindow"
-                       :content "test"
+                       :content  (canvas :paint #(.drawString %2 "I'm a canvas" 10 10))
                        :width 600
                        :height 400
                        :on-close :exit))
 (native!)
 
-(-> gameWindow (pack!) (show!))
+
 
 (set! *warn-on-reflection* true)
 (defn -main
