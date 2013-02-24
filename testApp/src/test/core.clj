@@ -3,7 +3,8 @@
         test.map
         test.render
         test.civ
-        korma.db)
+        ;korma.db
+        )
   (:import [javax.swing JFrame]
            [java.awt Canvas Graphics2D Color Graphics]
            [java.awt.image BufferedImage]
@@ -13,11 +14,13 @@
 (def running (atom true))
 
 (set! *warn-on-reflection* true)
+(native!)
 
 (def img (ImageIO/read (clojure.java.io/file "D:/Button.png" )))
-(defrecord gObj [name img coords])
-(def but (agent (gObj. "test" img [0 0])))
-(def daf (agent (gObj. "asdf" img [100 200])))
+(defrecord gObj [name img coords speed direction])
+;speed = pixel pro sekunde
+(def but (agent (gObj. "test" img [0 0] 50 [0 1])))
+(def daf (agent (gObj. "asdf" img [100 200] 50 [1 0])))
 
 (defn mVec [[x y] [dx dy]]
   (let [f (fn [val max]
@@ -29,8 +32,8 @@
         yOut (f (+ y dy) windY)]
     [xOut yOut]))
 
-(defn moveObj [obj dVec]
-  (assoc obj :coords (mVec (:coords obj) dVec)))
+(defn moveObj [obj]
+  (assoc obj :coords (mVec (:coords obj) (:direction obj))))
 
 (def objL(ref []))
 
@@ -38,12 +41,11 @@
   (alter objL conj but)
   (alter objL conj daf))
 
-
-(defn dImage [c g]
-  (doseq [i @objL] 
-    (let [[x y] (:coords @i)]
+(defn dImage [c ^Graphics g]
+  (dorun (map #(let [[x y] (:coords @%)]
       (doto g
-      (.drawImage (:img @i) x y nil)))))
+      (.drawImage (:img @%) x y nil)))@objL)))
+  
 
 (def pan (canvas :id :canvas :paint dImage))
 (def gW (agent (frame :title "gameWindow"
@@ -51,32 +53,32 @@
                        :width windX
                        :height windY)))
 
+(listen @gW :key-pressed (fn [e] (println "button pressed" e)))
+
 (defn drawFrame [x]
-  (when (= @running true)
-    (repaint! x)
-    (. Thread (sleep 100))
-    (send-off gW #'drawFrame)
-    gW))
-
-
-(native!)
+  (show! x)
+  (loop [i x]
+    (if (= @running true)
+      (do
+        (repaint! i)
+        (Thread/sleep 100)
+        (recur i))
+      i)))
 
 (defn paintLoop []
-  (invoke-later (show! @gW))
   (send gW drawFrame)
   (loop [it 0]
-    (when (> it 1000)
+    
+    (println it)
+    
+    (dorun (map #(send-off % moveObj) @objL))
+    
+    (when (>= it 100)
       (reset! running nil))
-
-      (send (nth @objL 0) moveObj [0 1])
-      (send (nth @objL 1) moveObj [1 0])
-      (println it)
-      (. Thread (sleep 100))
-      
+      (Thread/sleep 100)
       (if (= true @running)
         (recur (inc it))
         nil)))
-
 
 (defn -main
   "I don't do a whole lot."
