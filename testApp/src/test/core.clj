@@ -17,25 +17,31 @@
 (native!)
 
 (def img (ImageIO/read (clojure.java.io/file "D:/Button.png" )))
-(defrecord gObj [name img coords speed direction])
+(defrecord gObj [name img size coords direction speed])
 ;speed = pixel pro sekunde
-(def but (agent (gObj. "test" img [0 0] 50 [0 1])))
-(def daf (agent (gObj. "asdf" img [100 200] 50 [1 0])))
+(def but (agent (gObj. "test" img [(.getWidth ^BufferedImage img) (.getHeight ^BufferedImage img)] [1 1] [1 1] 5)))
+(def daf (agent (gObj. "asdf" img [(.getWidth ^BufferedImage img) (.getHeight ^BufferedImage img)] [250 250] [1 0] 11)))
 
-(defn mVec [[x y] [dx dy]]
+(defn mVec [[x y] [dx dy] speed]
   (let [f (fn [val max]
             (cond 
-               (> val max) 0
-               (< val 0) max
+               (> val max) 1
+               (< val 1) max
                :else val))
-        xOut (f (+ x dx) windX)
-        yOut (f (+ y dy) windY)]
+        xOut (f (+ x (* dx speed)) windX)
+        yOut (f (+ y (* dy speed)) windY)]
     [xOut yOut]))
 
 (defn moveObj [obj]
-  (assoc obj :coords (mVec (:coords obj) (:direction obj))))
+  (assoc obj :coords (mVec (:coords obj) (:direction obj) (:speed obj))))
 
 (def objL(ref []))
+
+(defn rectIntersect [[minX minY] [maxX maxY] [minRectX minRectY] [maxRectX maxRectY]] 
+  (not (or (> minRectX maxX)
+           (< maxRectX minX)
+           (> minRectY maxY)
+           (< maxRectY minY))))
 
 (dosync
   (alter objL conj but)
@@ -45,7 +51,6 @@
   (dorun (map #(let [[x y] (:coords @%)]
       (doto g
       (.drawImage (:img @%) x y nil)))@objL)))
-  
 
 (def pan (canvas :id :canvas :paint dImage))
 (def gW (agent (frame :title "gameWindow"
@@ -61,7 +66,7 @@
     (if (= @running true)
       (do
         (repaint! i)
-        (Thread/sleep 100)
+        (Thread/sleep 30)
         (recur i))
       i)))
 
@@ -70,11 +75,11 @@
   (loop [it 0]
     
     (println it)
-    
     (dorun (map #(send-off % moveObj) @objL))
     
     (when (>= it 100)
       (reset! running nil))
+    
       (Thread/sleep 100)
       (if (= true @running)
         (recur (inc it))
