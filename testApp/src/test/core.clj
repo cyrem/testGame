@@ -9,18 +9,25 @@
            [java.awt Canvas Graphics2D Color Graphics]
            [java.awt.image BufferedImage]
            [javax.imageio ImageIO]))
-(def windX 800)
-(def windY 600)
-(def running (atom true))
 
+(def running (atom true))
 (set! *warn-on-reflection* true)
 (native!)
 
+(def windX 800)
+(def windY 600)
+
 (def img (ImageIO/read (clojure.java.io/file "D:/Button.png" )))
 (defrecord gObj [name img size coords direction speed])
-;speed = pixel pro sekunde
+
 (def but (agent (gObj. "test" img [(.getWidth ^BufferedImage img) (.getHeight ^BufferedImage img)] [1 1] [1 1] 5)))
 (def daf (agent (gObj. "asdf" img [(.getWidth ^BufferedImage img) (.getHeight ^BufferedImage img)] [250 250] [1 0] 11)))
+
+(defn rectIntersect [[minX minY] [maxX maxY] [minRectX minRectY] [maxRectX maxRectY]] 
+  (not (or (> minRectX maxX)
+           (< maxRectX minX)
+           (> minRectY maxY)
+           (< maxRectY minY))))
 
 (defn mVec [[x y] [dx dy] speed]
   (let [f (fn [val max]
@@ -32,16 +39,18 @@
         yOut (f (+ y (* dy speed)) windY)]
     [xOut yOut]))
 
+(defn mirrorDir [inpVec]
+  (into []  (map #(* -1 %) inpVec)))
+
 (defn moveObj [obj]
-  (assoc obj :coords (mVec (:coords obj) (:direction obj) (:speed obj))))
+  (let [newCoords (mVec (:coords obj) (:direction obj) (:speed obj))
+        colOjbL (filter #(rectIntersect newCoords (:size obj) (:coords @%) (:size @%)) @objL)]
+    (println colOjbL)
+    (if (empty? colOjbL)
+      (assoc obj :coords newCoords)
+      (assoc obj :direction (mirrorDir (:direction obj))))))
 
 (def objL(ref []))
-
-(defn rectIntersect [[minX minY] [maxX maxY] [minRectX minRectY] [maxRectX maxRectY]] 
-  (not (or (> minRectX maxX)
-           (< maxRectX minX)
-           (> minRectY maxY)
-           (< maxRectY minY))))
 
 (dosync
   (alter objL conj but)
@@ -50,7 +59,7 @@
 (defn dImage [c ^Graphics g]
   (dorun (map #(let [[x y] (:coords @%)]
       (doto g
-      (.drawImage (:img @%) x y nil)))@objL)))
+        (.drawImage (:img @%) x y nil)))@objL)))
 
 (def pan (canvas :id :canvas :paint dImage))
 (def gW (agent (frame :title "gameWindow"
