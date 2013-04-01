@@ -1,38 +1,20 @@
 (ns test.quadTree)
 
-
-
-(comment 
-(defn createQuad [items depth [^int minX ^int minY ^int maxX ^int maxY]]
-  (when (> depth 0)
-    (let
-    [midX (int (/ (+ minX maxX) 2))
-     midY (int (/ (+ minY maxY) 2))
-     bounds [midX midY]
-     filtered (reduce (fn [acu vals]
-                        (let [sec (selectSubNode bounds (:x vals) (:y vals))]
-                          (case sec
-                            :nw (assoc acu :1 (conj (get acu 1)vals))
-                            :ne (assoc acu :2 (conj (get acu 2)vals))
-                            :sw (assoc acu :3 (conj (get acu 3)vals))
-                            :se (assoc acu :4 (conj (get acu 4)vals)))
-                          )) {:nw [] :ne [] :sw [] :se []} items)]
-    
-    (node. [minX minY maxX maxY] items
-           (createQuad (:nw filtered) (dec depth) [minX minY midX midY])
-           (createQuad (:ne filtered) (dec depth) [midX midY maxX midY])
-           (createQuad (:sw filtered) (dec depth) [minX midY midX maxY])
-           (createQuad (:se filtered) (dec depth) [midY midY maxX maxY])))))
-
-(def dadi (createQuad dadum 3 [1 1 100 100]))
-)
-
 (def dadum [{:x 4 :y 35 :v "sffsfda copy"}
             {:x 5 :y 40 :v "sdfaf"}
             {:x 11 :y 55 :v "sdfaf1"}
             {:x 99 :y 22 :v "sdfaf2"}
             {:x 100 :y 100 :v "sdfaf3"}])
 
+(defn subDiv [[^int minX ^int minY ^int maxX ^int maxY]]
+  (let
+    [midX (int (/ (+ minX maxX) 2))
+     midY (int (/ (+ minY maxY) 2))]
+    
+    {:nw [minX minY midX midY]
+     :ne [midX midY maxX midY]
+     :sw [minX midY midX maxY]
+     :se [midY midY maxX maxY]}))
 
 (defn rectIntersect [[minX minY maxX maxY] [minRectX minRectY maxRectX maxRectY]] 
   (not (or (> minRectX maxX)
@@ -47,35 +29,43 @@
     (and (> x midX) (< y midY)) :se
     (and (> x midX) (> y midY)) :ne))
 
-(defrecord node [bound nw ne sw se])
-(defrecord leaf [vals])
-(defrecord quadTree [root bounds maxDepth maxItems])
+(defrecord node [bounds vals nw ne sw se])
 
-;[]
-(defn createQuad [bounds maxD maxI]
-  (quadTree. (node. bounds nil nil nil nil) bounds maxD maxI))
+(def coords [1 1 100 100])
 
-(def test1 (quadTree. (node. [800 800] nil nil nil nil) [800 800] 5 5))
+(defn insQuad [node items bounds]
+  (cond 
+    (empty? items) node
+    (empty? node) (let [[i & r] items 
+                        [^int minX ^int minY ^int maxX ^int maxY] bounds
+                        midX (int (/ (+ minX maxX) 2))
+                        midY (int (/ (+ minY maxY) 2))
+                        selected (selectSubNode [midX midY] (:x i) (:y i))
+                        subDived (subDiv bounds)]
+                    (recur (node. bounds i nil nil nil nil) r bounds))
+    :else (let [[i & r] items 
+                [^int minX ^int minY ^int maxX ^int maxY] bounds
+                midX (int (/ (+ minX maxX) 2))
+                midY (int (/ (+ minY maxY) 2))
+                selected (selectSubNode [midX midY] (:x i) (:y i))
+                subDived (subDiv bounds)]
+            (recur (get node selected) r (get subDived selected)))))
 
-(defn quadIns [tree vals]
-  (let [[^int minX ^int minY ^int maxX ^int maxY] (:bounds tree)
-        midX (int (/ (+ minX maxX) 2))
-        midY (int (/ (+ minY maxY) 2))
-        midB [midX midY]
-        [val & rest] vals]
-    
-    (cond
-      (instance? leaf selected) (do
-                                  )
-      (instance? node selected) (do
-                                  )
-      ))
-    
-    
-    )
-  
+(defrecord bin [min max val])
 
-)
+
+(defn insBin [node item]
+  (cond
+    (empty? node) (bin. nil nil item) 
+    (<= item (:val node)) (bin. 
+                            (insBin (:min node) item)
+                            (:max node) 
+                            (:val node))
+    :else (bin.
+            (:min node)  
+            (insBin (:max node) item)
+            (:val node))
+    ))
 
 
 
