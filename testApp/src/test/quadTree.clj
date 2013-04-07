@@ -1,4 +1,5 @@
-(ns test.quadTree)
+(ns test.quadTree
+  (:require [clojure.zip :as zip]))
 
 (def dadum [{:x 4 :y 35 :v "sffsfda copy"}
             {:x 5 :y 40 :v "sdfaf"}
@@ -51,21 +52,36 @@
                 subDived (subDiv bounds)]
             (recur (get node selected) r (get subDived selected)))))
 
-(defrecord bin [min max val])
 
 
-(defn insBin [node item]
-  (cond
-    (empty? node) (bin. nil nil item) 
-    (<= item (:val node)) (bin. 
-                            (insBin (:min node) item)
-                            (:max node) 
-                            (:val node))
-    :else (bin.
-            (:min node)  
-            (insBin (:max node) item)
-            (:val node))
-    ))
+(definterface ITreeNode
+  (^long item [])
+  (left [])
+  (right []))
+
+(deftype TreeNode [left right ^long item]
+  ITreeNode
+  (item [this] item)
+  (left [this] left)
+  (right [this] right))
+
+
+
+(defn children [node])
+(defn make-node [node])
+
+
+
+(def dfas '(() (()(()() 3) 2) 1))
+
+(def blub (zip/zipper #(list? %1) 
+                      #(list (nth %1 1) (nth %1 2)) 
+                      #(if (< %2 (nth %1 3))
+                         (list %2 (nth %1 2) (nth %1 3))
+                         (list (nth %1 1) %2 (nth %1 3)))
+                      dfas))
+
+
 
 
 
