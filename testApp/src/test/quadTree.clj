@@ -1,6 +1,9 @@
 (ns test.quadTree
   (:require [clojure.zip :as zip]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 (def dadum [{:x 4 :y 35 :v "sffsfda copy"}
             {:x 5 :y 40 :v "sdfaf"}
             {:x 11 :y 55 :v "sdfaf1"}
@@ -30,56 +33,56 @@
     (and (> x midX) (< y midY)) :se
     (and (> x midX) (> y midY)) :ne))
 
-(defrecord node [bounds vals nw ne sw se])
+;(defrecord node [bounds vals nw ne sw se])
+;
+;(def coords [1 1 100 100])
+;
+;(defn insQuad [node items bounds]
+;  (cond 
+;    (empty? items) node
+;    (empty? node) (let [[i & r] items 
+;                        [^int minX ^int minY ^int maxX ^int maxY] bounds
+;                        midX (int (/ (+ minX maxX) 2))
+;                        midY (int (/ (+ minY maxY) 2))
+;                        selected (selectSubNode [midX midY] (:x i) (:y i))
+;                        subDived (subDiv bounds)]
+;                    (recur (node. bounds i nil nil nil nil) r bounds))
+;    :else (let [[i & r] items 
+;                [^int minX ^int minY ^int maxX ^int maxY] bounds
+;                midX (int (/ (+ minX maxX) 2))
+;                midY (int (/ (+ minY maxY) 2))
+;                selected (selectSubNode [midX midY] (:x i) (:y i))
+;                subDived (subDiv bounds)]
+;            (recur (get node selected) r (get subDived selected)))))
 
-(def coords [1 1 100 100])
-
-(defn insQuad [node items bounds]
-  (cond 
-    (empty? items) node
-    (empty? node) (let [[i & r] items 
-                        [^int minX ^int minY ^int maxX ^int maxY] bounds
-                        midX (int (/ (+ minX maxX) 2))
-                        midY (int (/ (+ minY maxY) 2))
-                        selected (selectSubNode [midX midY] (:x i) (:y i))
-                        subDived (subDiv bounds)]
-                    (recur (node. bounds i nil nil nil nil) r bounds))
-    :else (let [[i & r] items 
-                [^int minX ^int minY ^int maxX ^int maxY] bounds
-                midX (int (/ (+ minX maxX) 2))
-                midY (int (/ (+ minY maxY) 2))
-                selected (selectSubNode [midX midY] (:x i) (:y i))
-                subDived (subDiv bounds)]
-            (recur (get node selected) r (get subDived selected)))))
-
-
-
-(definterface ITreeNode
-  (^long item [])
-  (left [])
-  (right []))
-
-(deftype TreeNode [left right ^long item]
-  ITreeNode
-  (item [this] item)
-  (left [this] left)
-  (right [this] right))
+(defrecord BinNode [v l r])
+  
+(defn createZip [in]
+  (zip/zipper (fn [_] true) 
+              (fn [node] (list (:l node) (:r node)))
+              (fn  [node children] 
+                (BinNode. (:v node) (first children)(second children)))
+              in))
 
 
 
-(defn children [node])
-(defn make-node [node])
+
+(def testbin (BinNode. 1 (BinNode. 2 nil nil) (BinNode. 3 (BinNode. 4 nil nil) nil)))
+(def test123 (createZip testbin))
+
+
+(defn getPos [node value]
+  (cond
+    (or (empty? node) 
+        (nil? (:v (zip/node node)))) node
+    (< (:v (zip/node node) value)) (recur (zip/down node) value)
+    :else (recur (zip/right) value)))
 
 
 
-(def dfas '(() (()(()() 3) 2) 1))
 
-(def blub (zip/zipper #(list? %1) 
-                      #(list (nth %1 1) (nth %1 2)) 
-                      #(if (< %2 (nth %1 3))
-                         (list %2 (nth %1 2) (nth %1 3))
-                         (list (nth %1 1) %2 (nth %1 3)))
-                      dfas))
+
+
 
 
 
