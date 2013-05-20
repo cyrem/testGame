@@ -56,7 +56,7 @@
 ;            (recur (get node selected) r (get subDived selected)))))
 
 (defrecord BinNode [v l r])
-  
+
 (defn createZip [in]
   (zip/zipper (fn [_] true) 
               (fn [node] (list (:l node) (:r node)))
@@ -64,21 +64,18 @@
                 (BinNode. (:v node) (first children)(second children)))
               in))
 
-
-
-
 (def testbin (BinNode. 1 (BinNode. 2 nil nil) (BinNode. 3 (BinNode. 4 nil nil) nil)))
 (def test123 (createZip testbin))
-
 
 (defn getPos [node value]
   (cond
     (or (empty? node) 
         (nil? (:v (zip/node node)))) node
-    (< (:v (zip/node node) value)) (recur (zip/down node) value)
-    :else (recur (zip/right) value)))
+    (< value (:v (zip/node node))) (recur (zip/down node) value)
+    :else (recur (zip/right(zip/down node)) value)))
 
-
+(defn quadIns [node val]
+   (zip/edit (getPos node val) (fn [_] (BinNode. val nil nil))))
 
 
 
