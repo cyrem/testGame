@@ -65,7 +65,7 @@
               in))
 
 (def testbin (BinNode. 1 (BinNode. 2 nil nil) (BinNode. 3 (BinNode. 4 nil nil) nil)))
-(def test123 (createZip testbin))
+
 
 (defn getPos [node value]
   (cond
@@ -75,10 +75,12 @@
     :else (recur (zip/right(zip/down node)) value)))
 
 (defn quadIns [node val]
-   (zip/edit (getPos node val) (fn [_] (BinNode. val nil nil))))
+  (let [node (createZip node)]
+    (zip/root(zip/edit (getPos node val) (fn [_] (BinNode. val nil nil))))))
 
 
-
+(defn massIns [dataS items]
+  (reduce quadIns items))
 
 
 
