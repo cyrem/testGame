@@ -82,7 +82,7 @@
 (defn massIns [dataS items]
   (reduce quadIns items))
 
-
+ 
 
 
 
