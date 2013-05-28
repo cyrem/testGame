@@ -1,5 +1,6 @@
 (ns test.quadTree
-  (:require [clojure.zip :as zip]))
+  (:require [clojure.zip :as zip]
+            ))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -26,11 +27,11 @@
            (> minRectY maxY)
            (< maxRectY minY)))) 
 
-(defn selectSubNode [[midX midY] x y]
+(defn selectSubNode [[midX midY] [x y]]
   (cond
-    (and (< x midX) (< y midY)) :sw
-    (and (< x midX) (> y midY)) :nw
-    (and (> x midX) (< y midY)) :se
+    (and (<= x midX) (<= y midY)) :sw
+    (and (<= x midX) (> y midY)) :nw
+    (and (> x midX) (<= y midY)) :se
     (and (> x midX) (> y midY)) :ne))
 
 ;(defrecord node [bounds vals nw ne sw se])
@@ -57,7 +58,7 @@
 
 (defrecord BinNode [v l r])
 
-(defn createZip [in]
+(defn createBinZip [in]
   (zip/zipper (fn [_] true) 
               (fn [node] (list (:l node) (:r node)))
               (fn  [node children] 
@@ -66,27 +67,58 @@
 
 (def testbin (BinNode. 1 (BinNode. 2 nil nil) (BinNode. 3 (BinNode. 4 nil nil) nil)))
 
-
-(defn getPos [node value]
+(defn getPosBin [node value]
   (cond
     (or (empty? node) 
         (nil? (:v (zip/node node)))) node
     (< value (:v (zip/node node))) (recur (zip/down node) value)
     :else (recur (zip/right(zip/down node)) value)))
 
+(defn binIns [node val]
+  (let [node (createBinZip node)]
+    (zip/root(zip/edit (getPosBin node val) (fn [_] (BinNode. val nil nil))))))
+
+
+
+(defrecord QuadNode [v bounds nw ne sw se])
+
+(def testquad (QuadNode. [1 1] [1 1 100 100] nil nil nil nil ))
+
+
+(defn createQuadZip [in]
+  (zip/zipper (fn [_] true) 
+              (fn [node] (let [{:keys [v b nw ne sw se]} node] (list b nw ne sw se)))
+              (fn  [node children] (let [{:keys [v b nw ne sw se]} children] 
+                                     (QuadNode. (:v node) b nw ne sw se)))
+              in))
+
+(def zipQuad (createQuadZip testquad))
+
+
+(defn getPosQuad [node coords [^int minX ^int minY ^int maxX ^int maxY]]
+  (cond
+    (or (empty? node) 
+        (nil? (:v (zip/node node)))) node
+    :else (let [iNode (zip/node node)
+                midX (int (/ (+ minX maxX) 2))
+                midY (int (/ (+ minY maxY) 2))
+                selected (selectSubNode [midX midY] coords)
+                out (case selected
+                      :nw (zip/right (zip/down node))
+                      :ne (zip/right (zip/right (zip/down node)))
+                      :sw (zip/right (zip/right (zip/right (zip/down node))))
+                      :se (zip/right (zip/right (zip/right (zip/right (zip/down node))))))
+                outB (case out
+                       :nw [minX minY midX midY]
+                       :ne [midX midY maxX midY]
+                       :sw [minX midY midX maxY]
+                       :se [midY midY maxX maxY])
+                ]
+            (recur out coords outB ))))
+
 (defn quadIns [node val]
-  (let [node (createZip node)]
-    (zip/root(zip/edit (getPos node val) (fn [_] (BinNode. val nil nil))))))
-
-
-(defn massIns [dataS items]
-  (reduce quadIns items))
-
- 
-
-
-
-
-
+  ;(let [node (createBinZip node)]
+    (zip/root(zip/edit (getPosQuad node val) (fn [_] (QuadNode. val b nw ne sw se)))))
+;)
 
 
