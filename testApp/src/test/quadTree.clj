@@ -3,7 +3,7 @@
             ))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+;(set! *unchecked-math* true)
 
 (def dadum [{:x 4 :y 35 :v "sffsfda copy"}
             {:x 5 :y 40 :v "sdfaf"}
@@ -80,45 +80,50 @@
 
 
 
-(defrecord QuadNode [v bounds nw ne sw se])
+(defrecord QuadNode [v b nw ne sw se])
 
 (def testquad (QuadNode. [1 1] [1 1 100 100] nil nil nil nil ))
 
 
 (defn createQuadZip [in]
   (zip/zipper (fn [_] true) 
-              (fn [node] (let [{:keys [v b nw ne sw se]} node] (list b nw ne sw se)))
-              (fn  [node children] (let [{:keys [v b nw ne sw se]} children] 
-                                     (QuadNode. (:v node) b nw ne sw se)))
+              (fn [node] (let [{:keys [v b nw ne sw se]} node] [b nw ne sw se]))
+              (fn  [node [_ b nw ne sw se]]
+                 (QuadNode. (:v node) b nw ne sw se))
               in))
 
 (def zipQuad (createQuadZip testquad))
 
 
+
+
+
 (defn getPosQuad [node coords [^int minX ^int minY ^int maxX ^int maxY]]
   (cond
     (or (empty? node) 
-        (nil? (:v (zip/node node)))) node
+        (nil? (:v (zip/node node)))) [node [minX minY maxX maxY]]
     :else (let [iNode (zip/node node)
-                midX (int (/ (+ minX maxX) 2))
-                midY (int (/ (+ minY maxY) 2))
+                midX  (int (/ (+ minX maxX) 2))
+                midY  (int (/ (+ minY maxY) 2))
                 selected (selectSubNode [midX midY] coords)
                 out (case selected
                       :nw (zip/right (zip/down node))
                       :ne (zip/right (zip/right (zip/down node)))
                       :sw (zip/right (zip/right (zip/right (zip/down node))))
                       :se (zip/right (zip/right (zip/right (zip/right (zip/down node))))))
-                outB (case out
+                outB (case selected
                        :nw [minX minY midX midY]
                        :ne [midX midY maxX midY]
                        :sw [minX midY midX maxY]
                        :se [midY midY maxX maxY])
                 ]
-            (recur out coords outB ))))
+            (recur out coords outB))))
+  
 
-(defn quadIns [node val]
+(defn quadIns [node val bounds]
   ;(let [node (createBinZip node)]
-    (zip/root(zip/edit (getPosQuad node val) (fn [_] (QuadNode. val b nw ne sw se)))))
+
+    (zip/root (let [[pos b] (getPosQuad node val bounds)] (zip/edit pos (fn [_] (QuadNode. val b nil nil nil nil))))))
 ;)
 
 
