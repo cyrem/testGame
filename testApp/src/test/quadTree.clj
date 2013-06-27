@@ -5,6 +5,45 @@
 (set! *warn-on-reflection* true)
 ;(set! *unchecked-math* true)
 
+(defprotocol QuadOperations
+  (insert [this v] "inserts a new point")
+  (queryRange [this r] "finds points in the supplied range")
+  )
+
+(defrecord XY [x y])
+(defrecord AABB [center halfD])
+
+
+(defrecord QuadTree [boundary nW nE sW sE]
+  QuadOperations
+  (insert [this v] (println this))
+  (queryRange[_ r])
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(comment
+
+
+
+
 (def dadum [{:x 4 :y 35 :v "sffsfda copy"}
             {:x 5 :y 40 :v "sdfaf"}
             {:x 11 :y 55 :v "sdfaf1"}
@@ -94,10 +133,6 @@
 
 (def zipQuad (createQuadZip testquad))
 
-
-
-
-
 (defn getPosQuad [node coords [^int minX ^int minY ^int maxX ^int maxY]]
   (cond
     (or (empty? node) 
@@ -120,10 +155,33 @@
             (recur out coords outB))))
   
 
-(defn quadIns [node val bounds]
-  ;(let [node (createBinZip node)]
+(defn quadIns [node [val bounds]]
+  (let [node (createQuadZip node)]
+    (zip/root (let [[pos b] (getPosQuad node val bounds)] (zip/edit pos (fn [_] (QuadNode. val b nil nil nil nil)))))))
 
-    (zip/root (let [[pos b] (getPosQuad node val bounds)] (zip/edit pos (fn [_] (QuadNode. val b nil nil nil nil))))))
-;)
+
+(def dadim [
+            
+            [[5 5] [1 1 100 100]]
+            [[7 12] [1 1 100 100]]
+            [[8 55] [1 1 100 100]]
+            [[55 53] [1 1 100 100]]
+            [[5 22] [1 1 100 100]]
+            
+            ])
+
+
+
+
+
+
+
+
+
+)
+
+
+
+
 
 
