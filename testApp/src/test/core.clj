@@ -1,4 +1,5 @@
 (ns test.core
+
   (:require [seesaw core graphics swingx]
         test.map
         test.render
@@ -95,9 +96,6 @@
                      nil)
                    ) false (filter #(not (= (:name obj) (:name @%))) @objL))) (assoc obj :direction (mirrorDir (:direction obj)))
       :else (assoc obj :coords newCoords))))
-
-
-
 
 
 (defn dImage [c ^Graphics g]
