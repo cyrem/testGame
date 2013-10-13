@@ -1,43 +1,62 @@
 (ns test.quadTree
-    (:use [clojure.core.match :only (match)])
-    (:require clojure.zip))
+    
+    (:require [clojure.zip :as zip]
+              [test.datatypes])
+    (:use [clojure.core.match :only (match)]
+          [test.datatypes])
+    (:import [test.datatypes Rectangle]
+             [test.datatypes XYPoint])
+    )
 
 (set! *warn-on-reflection* true)
 
 
-(defn binTree [node val]
-  (cond
-    (nil? val) {:v nil :l nil :r nil}
-    (nil? node) {:v val :l nil :r nil}
-    (nil? (:v node)) (assoc node :v val)
-    (< val (:v node)) (assoc node :l (binTree (:l node) val))
-    :else (assoc node :r (binTree (:r node) val))))
+(defprotocol ZipOps 
+  (branch? [node])
+  (children[node])
+  (make-node[node children]))
 
 
-(defn binTree2 [node val ]
-  (let [bTL (fn[])]
-    
-    (if (nil? val)
-      node
-      
+
+(deftype QuadNode [o ^Rectangle b c]
+  Object
+  (toString [this]
+    (pr-str "QuadNode:
+ o:" o "
+ b: " b "
+ c: " c))
+  
+  ZipOps
+  (branch? [node]
+    true)
+  (children[node]
+    (.c node))
+  (make-node[node children]
+    (QuadNode. (.o node) (.b node) children)))
+
+
+  (defn insert [node val])
+  (defn delete [node val])
+  (defn subDivide[node]
+   ; (let [[nw ne sw se] (split (.b node))])
     )
   
-  
-  (cond
-    (nil? val) {:v nil :l nil :r nil}
-    (nil? node) {:v val :l nil :r nil}
-    (nil? (:v node)) (assoc node :v val)
-    (< val (:v node)) (assoc node :l (binTree (:l node) val))
-    :else (assoc node :r (binTree (:r node) val)))))
+  (defn findInBounds [node rec]
+    ;this = root
+    ;(->Rectangle (->XYPoint 25 25) (->XYPoint 4 5))
+    
+    (let [ rec1 ^Rectangle (.b (^QuadNode zip/node node))]
+      
+      (println rec1)
+      )
+    )
 
 
-;(binTree (binTree (binTree nil 5) 1) 9)
-
-
-
-
-
-
+(def rzip (zip/zipper
+            branch?
+            children
+            make-node
+            (->QuadNode [] (->Rectangle (->XYPoint 0 0) (->XYPoint 200 200)) [])))
 
 
 

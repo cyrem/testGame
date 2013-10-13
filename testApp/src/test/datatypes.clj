@@ -17,6 +17,10 @@
   )
 
 (deftype XYPoint [^int x ^int y]
+  Object
+  (toString [this]
+    (pr-str "XYPoint: x: " x " y: " y))
+  
     clojure.core.match.protocols/IMatchLookup
     (val-at [this k not-found]
       (case k
@@ -25,6 +29,10 @@
         not-found)))
 
 (deftype Rectangle [^XYPoint pos ^XYPoint size]
+  Object
+  (toString [this]
+     (pr-str "Rectangle: pos: " pos " size: " size))
+  
   clojure.core.match.protocols/IMatchLookup
   (val-at [this k not-found]
     (case k
@@ -44,8 +52,8 @@
           subHeight (getHorMidpoint this)
           x (.x pos)
           y (.y pos)]
-          [(Rectangle. (->XYPoint (+ x subWidth) y)(->XYPoint subWidth subHeight))
-           (Rectangle. (->XYPoint  x y)(->XYPoint subWidth subHeight))
+          [(Rectangle. (->XYPoint  x y)(->XYPoint subWidth subHeight))
+           (Rectangle. (->XYPoint (+ x subWidth) y)(->XYPoint subWidth subHeight))
            (Rectangle. (->XYPoint x (+ subHeight y))(->XYPoint subWidth subHeight))
            (Rectangle. (->XYPoint (+ x subWidth) (+ subHeight y))(->XYPoint subWidth subHeight))]))
   
@@ -90,16 +98,10 @@
              [true true] :nw))))
 
 
-(def tR (->Rectangle (->XYPoint 1 1) (->XYPoint 100 100)))
+(def tR (->Rectangle (->XYPoint 1 1) (->XYPoint 99 99)))
 (def tR2 (->Rectangle (->XYPoint 25 25) (->XYPoint 4 5)))
 
-(defprotocol QuadOps
-  (insert [this val])
-  (clear [this])
-  (query [this] val))
 
-
-(defrecord QuadNode [val bounds node])
 
 
 
