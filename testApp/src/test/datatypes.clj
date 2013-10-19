@@ -7,9 +7,6 @@
 
 (set! *warn-on-reflection* true)
 
-
-
-
 (defprotocol RectangleOps
   (getVertMidpoint[this])
   (getHorMidpoint [this])
@@ -60,24 +57,25 @@
                (< (+ (:x posThis) (:x sizeThis)) (:x posP))
                (> (:y posThis) (+ (:y posP) (:y sizeP)))
                (< (+ (:y posThis) (:y sizeThis)) (:y posP))))))
-  
+   
   (getSector [this p]
-    (let [^int vertMid (getVertMidpoint this)
-          ^int horMid (getHorMidpoint this)
-          ^XYPoint posP (:pos ^Rectangle p)
-          ^XYPoint sizeP (:size ^Rectangle p)
-          top? (or 
-                 (< (:y posP) horMid)
-                 (< (+ (:y posP) (:y sizeP)) horMid))
-          left? (or
+    (when (within? this p)
+      (let [^int vertMid (getVertMidpoint this)
+            ^int horMid (getHorMidpoint this)
+            ^XYPoint posP (:pos ^Rectangle p)
+            ^XYPoint sizeP (:size ^Rectangle p)
+            top? (or 
+                   (< (:y posP) horMid)
+                   (< (+ (:y posP) (:y sizeP)) horMid))
+            left? (or
                   (< (:x posP) vertMid)
                   (< (+ (:x posP) (:x sizeP)) vertMid))]
       
-      (match [top? left?]
-             [false false] :se
-             [false true] :sw
-             [true false] :ne
-             [true true] :nw))))
+        (match [top? left?]
+               [false false] :se
+               [false true] :sw
+               [true false] :ne
+               [true true] :nw)))))
 
 
 (def tR (->Rectangle (->XYPoint 1 1) (->XYPoint 99 99)))

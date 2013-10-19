@@ -1,11 +1,8 @@
 (ns test.quadTree
     (:require [clojure.zip :as zip]
               [test.datatypes])
-    (:use [clojure.core.match :only (match)]
-          [test.datatypes])
-    (:import [test.datatypes Rectangle]
-             [test.datatypes XYPoint])
-    )
+    (:use [clojure.core.match :only (match)])
+    (:import [test.datatypes Rectangle XYPoint]))
 
 
 (set! *warn-on-reflection* true)
@@ -17,14 +14,14 @@
 
 
 
-(defrecord QuadNode [o ^Rectangle b c]
+(defrecord QuadNode [o d ^Rectangle b c]
   ZipOps
   (branch? [node]
     true)
   (children[node]
     (:c node))
   (make-node[node children]
-    (QuadNode. (:o node) (:b node) children)))
+    (assoc node :c children)))
 
 
   (defn insert [node val]
@@ -49,10 +46,40 @@
   (defn delete [node val])
   (defn subDivide[loc]
    (
-    )
+     
+    ))
   
-  (defn findInBounds [node inner]
-    ;this = root
+  (defn findWithBounds [node ^Rectangle inner]
+    "takes node and a rectangle and finds the fitting node"
+    (let [unzippedNode (zip/node node)
+          nodeBounds(:b unzippedNode)
+          fitsInThisNode (within? nodeBounds inner)
+          subSector (getSector(:b unzippedNode) inner)
+          hasChildren(empty? (:c unzippedNode))
+          ]
+(println hasChildren)
+      
+      (match [hasChildren fitsInThisNode subSector]
+             [true false _] nil
+             [_ false _] nil
+             [_ true false] node
+             [false true :nw] (recur (-> node
+                                       zip/down) inner)
+             [false true :ne] (recur (-> node
+                                       zip/down
+                                       zip/right) inner)
+             [false true :sw] (recur (-> node
+                                       zip/down
+                                       zip/right
+                                       zip/right) inner)
+             [false true :se] (recur (-> node
+                                       zip/down
+                                       zip/right
+                                zip/right
+                                zip/right) inner)
+             [_ _ _] "omgwtfbbq!!112431"
+             )
+      ;this = root
     ;(->Rectangle (->XYPoint 25 25) (->XYPoint 4 5))
 
     ))
@@ -64,18 +91,18 @@
             make-node
             coll))
 
-  
+   
   (def rzip 
-  (zipperCreate (->QuadNode [] (->Rectangle (->XYPoint 0 0) (->XYPoint 200 200)) [])))
+  (zipperCreate (->QuadNode [] 0 (->Rectangle (->XYPoint 0 0) (->XYPoint 200 200)) [])))
   (def rtest (zip/root (zip/append-child rzip tR2)))
   
   (def bsZip (let [ unzippedNode (zip/node rzip)
                    splitted (split (:b unzippedNode))]
                (-> rzip
-                 (zip/append-child  (->QuadNode [] (nth splitted 0) []))
-                 (zip/append-child  (->QuadNode [] (nth splitted 1) []))
-                 (zip/append-child  (->QuadNode [] (nth splitted 2) []))
-                 (zip/append-child  (->QuadNode [] (nth splitted 3) []))
+                 (zip/append-child  (->QuadNode [] 1 (nth splitted 0) []))
+                 (zip/append-child  (->QuadNode [] 1 (nth splitted 1) []))
+                 (zip/append-child  (->QuadNode [] 1 (nth splitted 2) []))
+                 (zip/append-child  (->QuadNode [] 1 (nth splitted 3) []))
                  zip/root
                  )))
   
