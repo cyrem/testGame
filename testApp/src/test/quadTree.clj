@@ -1,7 +1,8 @@
 (ns test.quadTree
     (:require [clojure.zip :as zip]
               [test.datatypes])
-    (:use [clojure.core.match :only (match)])
+    (:use [clojure.core.match :only (match)]
+          [test.datatypes])
     (:import [test.datatypes Rectangle XYPoint]))
 
 
@@ -54,35 +55,32 @@
     (let [unzippedNode (zip/node node)
           nodeBounds(:b unzippedNode)
           fitsInThisNode (within? nodeBounds inner)
-          subSector (getSector(:b unzippedNode) inner)
-          hasChildren(empty? (:c unzippedNode))
-          ]
-(println hasChildren)
+          subSector (getSector (:b unzippedNode) inner)
+          hasChildren (empty? (:c unzippedNode))
+          canGoDeeper (< (:d unzippedNode) 6)]
       
-      (match [hasChildren fitsInThisNode subSector]
-             [true false _] nil
-             [_ false _] nil
-             [_ true false] node
-             [false true :nw] (recur (-> node
-                                       zip/down) inner)
-             [false true :ne] (recur (-> node
-                                       zip/down
-                                       zip/right) inner)
-             [false true :sw] (recur (-> node
+      (match [hasChildren fitsInThisNode subSector canGoDeeper]
+             [true false false _] nil ;throw error
+             [true true _ _] node
+             [false _ :nw true] (recur (-> node
+                                         zip/down) inner)
+             
+             [false _ :ne true] (recur (-> node
+                                            zip/down
+                                         zip/right) inner)
+             
+             [false _ :sw true] (recur (-> node
+                                            zip/down
+                                            zip/right
+                                         zip/right) inner)
+             
+             [false _ :se true] (recur (-> node
                                        zip/down
                                        zip/right
-                                       zip/right) inner)
-             [false true :se] (recur (-> node
-                                       zip/down
                                        zip/right
-                                zip/right
-                                zip/right) inner)
-             [_ _ _] "omgwtfbbq!!112431"
-             )
-      ;this = root
-    ;(->Rectangle (->XYPoint 25 25) (->XYPoint 4 5))
-
-    ))
+                                    zip/right) inner)
+             :else "omgwtfbbq!!112431"
+             )))
 
   (defn zipperCreate [coll]
     (zip/zipper
