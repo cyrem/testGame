@@ -5,15 +5,12 @@
           [test.datatypes])
     (:import [test.datatypes Rectangle XYPoint]))
 
-
 (set! *warn-on-reflection* true)
 
 (defprotocol ZipOps 
   (branch? [node])
   (children[node])
   (make-node[node children]))
-
-
 
 (defrecord QuadNode [o d ^Rectangle b c]
   ZipOps
@@ -24,41 +21,31 @@
   (make-node[node children]
     (assoc node :c children)))
 
+(defn insert [node val])
+  
+(defn delete [node val])
+  
+(defn subDivide [loc]
+  (let [unzippedNode (zip/node loc)
+        splitted (split (:b unzippedNode))
+        newDepth (inc (:d unzippedNode))]
+    (-> loc
+      (zip/append-child  (->QuadNode [] newDepth (nth splitted 0) []))
+      (zip/append-child  (->QuadNode [] newDepth (nth splitted 1) []))
+      (zip/append-child  (->QuadNode [] newDepth (nth splitted 2) []))
+      (zip/append-child  (->QuadNode [] newDepth (nth splitted 3) []))
+      )))
 
-  (defn insert [node val]
+
+(defn findWithBounds [node ^Rectangle inner]
+  "takes node and a rectangle and finds the fitting node"
+  (let [unzippedNode (zip/node node)
+        nodeBounds(:b unzippedNode)
+        fitsInThisNode (within? nodeBounds inner)
+        subSector (getSector (:b unzippedNode) inner)
+        hasChildren (empty? (:c unzippedNode))
+        canGoDeeper (< (:d unzippedNode) 6)]
     
-;        (let [outer ^Rectangle (.b (^QuadNode zip/node node))]
-;    (when (within? outer inner)
-;    
-;    (let [[nw ne sw se] (split outer)
-;          checkNw (within? nw inner)
-;          checkNe (within? ne inner)
-;          checkSw (within? sw inner)
-;          checkSe (within? se inner)]
-;
-;      (match [checkNw checkNe checkSw checkSe]
-;             [false false false false] ; insert in current node
-;             [true true true true]
-;             
-;      )))
-;    )
-)
-  
-  (defn delete [node val])
-  (defn subDivide[loc]
-   (
-     
-    ))
-  
-  (defn findWithBounds [node ^Rectangle inner]
-    "takes node and a rectangle and finds the fitting node"
-    (let [unzippedNode (zip/node node)
-          nodeBounds(:b unzippedNode)
-          fitsInThisNode (within? nodeBounds inner)
-          subSector (getSector (:b unzippedNode) inner)
-          hasChildren (empty? (:c unzippedNode))
-          canGoDeeper (< (:d unzippedNode) 6)]
-      
       (match [hasChildren fitsInThisNode subSector canGoDeeper]
              [true false false _] nil ;throw error
              [true true _ _] node
@@ -66,46 +53,50 @@
                                          zip/down) inner)
              
              [false _ :ne true] (recur (-> node
-                                            zip/down
+                                         zip/down
                                          zip/right) inner)
              
              [false _ :sw true] (recur (-> node
-                                            zip/down
-                                            zip/right
+                                         zip/down
+                                         zip/right
                                          zip/right) inner)
              
              [false _ :se true] (recur (-> node
-                                       zip/down
-                                       zip/right
-                                       zip/right
-                                    zip/right) inner)
+                                         zip/down
+                                         zip/right
+                                         zip/right
+                                         zip/right) inner)
              :else "omgwtfbbq!!112431"
              )))
 
-  (defn zipperCreate [coll]
+(defn zipperCreate [coll]
     (zip/zipper
-            branch?
-            children
-            make-node
-            coll))
+      branch?
+      children
+      make-node
+      coll))
 
+
+(defn buildQuadTree [root]
+  (let [tree  (zipperCreate root)
+        ]
    
-  (def rzip 
+    )
+  
+  (match [root]
+         ;[o d ^Rectangle b c]
+         [nil] nil
+         [{:o _ :d (_ :guard #(< % 6)) :b _ :c _}] "asdfsf"
+         )
+  )
+
+
+(def rzip 
   (zipperCreate (->QuadNode [] 0 (->Rectangle (->XYPoint 0 0) (->XYPoint 200 200)) [])))
-  (def rtest (zip/root (zip/append-child rzip tR2)))
-  
-  (def bsZip (let [ unzippedNode (zip/node rzip)
-                   splitted (split (:b unzippedNode))]
-               (-> rzip
-                 (zip/append-child  (->QuadNode [] 1 (nth splitted 0) []))
-                 (zip/append-child  (->QuadNode [] 1 (nth splitted 1) []))
-                 (zip/append-child  (->QuadNode [] 1 (nth splitted 2) []))
-                 (zip/append-child  (->QuadNode [] 1 (nth splitted 3) []))
-                 zip/root
-                 )))
-  
 
+(def rtest (zip/root (zip/append-child rzip tR2)))
 
+(def bsZip (subDivide rzip))
 
 
 
