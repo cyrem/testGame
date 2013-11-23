@@ -46,8 +46,13 @@
         hasChildren (empty? (:c unzippedNode))
         canGoDeeper (< (:d unzippedNode) 6)]
     
+;    (println hasChildren)
+;    (println fitsInThisNode)
+;    (println subSector)
+;    (println canGoDeeper)
+    
       (match [hasChildren fitsInThisNode subSector canGoDeeper]
-             [true false false _] nil ;throw error
+             [_ false false _] nil ;throw error
              [true true _ _] node
              [false _ :nw true] (recur (-> node
                                          zip/down) inner)
@@ -77,17 +82,22 @@
       coll))
 
 
+
 (defn buildQuadTree [root]
-  (let [tree  (zipperCreate root)
+  (let [tree (zipperCreate root)
+        buildRec (fn[node]
+                   (let [unzippedNode (zip/node node)]
+                     (match [root] 
+                            ;[o d ^Rectangle b c]
+                            [nil] nil
+                            [{:o _ :d (_ :guard #(< % 6)) :b _ :c _}] "asdfsf"
+                            [_] nil 
+                            )   
+                     )
+                   )
         ]
-   
-    )
-  
-  (match [root]
-         ;[o d ^Rectangle b c]
-         [nil] nil
-         [{:o _ :d (_ :guard #(< % 6)) :b _ :c _}] "asdfsf"
-         )
+    (buildRec tree)
+     )
   )
 
 
