@@ -19,7 +19,7 @@
 
 (def windX 800)
 (def windY 600)
-(def img (ImageIO/read (clojure.java.io/file "D:/Button1.png" )))
+(def img (ImageIO/read (clojure.java.io/file "C:/Button1.png" )))
 
 
 (defprotocol Scan 
@@ -108,7 +108,8 @@
 (def gW (agent (seesaw.core/frame :title "gameWindow"
                        :content pan
                        :width windX
-                       :height windY)))
+                       :height windY
+                       :on-close :exit)))
 
 ;(seesaw.core/listen @gW :key-pressed (fn [e] (println "button pressed" e)))
 
@@ -121,6 +122,7 @@
         (Thread/sleep 30)
         (recur i))
       i)))
+
 
 (defn paintLoop []
   (send gW drawFrame)
