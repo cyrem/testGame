@@ -1,11 +1,15 @@
 (ns test.quadTree
+  (:refer-clojure :exclude [* - + == /])
     (:require [clojure.zip :as zip]
-              [test.datatypes])
+              [test.dataTypesMatrix])
     (:use [clojure.core.match :only (match)]
-          [test.datatypes])
-    (:import [test.datatypes Rectangle XYPoint]))
-
+          [test.dataTypesMatrix]
+          [clojure.core.matrix]
+          [clojure.core.matrix operators])
+    (:import [test.dataTypesMatrix Rectangle XYPoint]))
+ 
 (set! *warn-on-reflection* true)
+(set-current-implementation :vectorz) 
 
 (defprotocol ZipOps 
   (branch? [node])
@@ -27,7 +31,7 @@
   
 (defn subDivide [loc]
   (let [unzippedNode (zip/node loc)
-        splitted (split (:b unzippedNode))
+        splitted (split ^Rectangle (:b unzippedNode))
         newDepth (inc (:d unzippedNode))]
     (-> loc
       (zip/append-child  (->QuadNode [] newDepth (nth splitted 0) []))
@@ -54,6 +58,7 @@
       (match [hasChildren fitsInThisNode subSector canGoDeeper]
              [_ false false _] nil ;throw error
              [true true _ _] node
+             ;[true false _ true] subDivide?
              [false _ :nw true] (recur (-> node
                                          zip/down) inner)
              
@@ -87,9 +92,10 @@
   (let [tree (zipperCreate root)
         buildRec (fn[node]
                    (let [unzippedNode (zip/node node)]
-                     (match [root] 
+                     (println unzippedNode)
+                     (match [unzippedNode] 
                             ;[o d ^Rectangle b c]
-                            [nil] nil
+                            ;(_ :guard #((< % 6)))
                             [{:o _ :d (_ :guard #(< % 6)) :b _ :c _}] "asdfsf"
                             [_] nil 
                             )   
@@ -101,11 +107,15 @@
   )
 
 
-(def rzip 
-  (zipperCreate (->QuadNode [] 0 (->Rectangle (->XYPoint 0 0) (->XYPoint 200 200)) [])))
+(def tR (->Rectangle (->XYPoint (matrix [1 1])) (->XYPoint (matrix [100 100]))))
+(def tR2 (->Rectangle (->XYPoint (matrix [6 6])) (->XYPoint (matrix [20 1]))))
+
+(def q (->QuadNode [] 0 (->Rectangle
+                                   (->XYPoint (matrix [0 0]))
+                                   (->XYPoint (matrix  [200 200]))) []))
+(def rzip (zipperCreate q))
 
 (def rtest (zip/root (zip/append-child rzip tR2)))
-
 (def bsZip (subDivide rzip))
 
 
