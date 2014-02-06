@@ -71,7 +71,8 @@
                 [false false] :se
                 [false true] :sw
                 [true false] :ne
-                [true true] :nw))))
+                [true true] :nw
+                [_ _] nil))))
    )
 
 
