@@ -24,7 +24,7 @@
    (split[this]
      (let [midPoint  (* (:coords size) 0.5)]
        [(Rectangle. (->XYPoint (:coords pos)) (->XYPoint midPoint));oben links
-        (Rectangle. (->XYPoint (+ (:coords pos) (* [0.5 0] (:coords size)) )) (->XYPoint (+ (:coords pos) (* [1 0.5] (:coords size)) )));oben rechts
+        (Rectangle. (->XYPoint (+ (:coords pos) (* [0.5 0] (:coords size)) )) (->XYPoint  (* [1 0.5] (:coords size)) ));oben rechts
         (Rectangle. (->XYPoint (+ (:coords pos) (* [0 0.5] (:coords size)) )) (->XYPoint (* [0.5 1] (:coords size))));unten links
         (Rectangle. (->XYPoint  midPoint) (->XYPoint (:coords size))) ;unten rechts
         ]))
