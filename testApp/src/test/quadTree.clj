@@ -36,7 +36,6 @@
 (defn- insertIntoQuad [unzippedNode val]
   (assoc unzippedNode :o (conj (:o unzippedNode) val)))
 
-
 (defn- deleteFromQuad [unzippedNode val])
 
 (defn delete [node val])
@@ -87,14 +86,17 @@
            :else (throw (Exception. "omgwtfbbq!!112431"))
            )))
 
-(defn getAllElements [node nr]
-  (when (instance? test.quadTree.QuadNode (zip/node node))
-    (println (:b (zip/node  node))))
-  
-  (if (zip/end? node)
-    nr
-    (recur (zip/next node )(inc nr)))
-  )
+(defn getAllElements [node]
+  "returns a list with all objects from this node and all subnodes"  
+  (let [intF (fn [n ret]
+               (if (zip/end? n)
+                 ret
+                 (if (or(empty? (:o (zip/node n)))
+                        (nil? (:o (zip/node n))))
+                   (recur (zip/next n ) ret)
+                   (recur (zip/next n ) (concat ret (:o (zip/node n)))))
+                 ))]
+    (intF node [])))
 
 
 (defn insert [node val]
