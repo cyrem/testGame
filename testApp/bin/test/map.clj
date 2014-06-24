@@ -6,32 +6,42 @@
 (def systemName ["blub" "sadf"])
 (def systemFeatures ["asdf" "fghf"])
 
-(defrecord universe [starMap systemList unitList civList])
-(defrecord system [name planets solarStr features])
-(defrecord planet [class size features])
+(defrecord Universe [starMap civList])
+(defrecord PSystem [name planets solarStr features owner])
+(defrecord Planet [class size features])
 
 
 (defn createPlanet []
-  (planet. (util/hash-nth planetClasses) (util/rand-int1 8) (util/hash-nth planetFeatures)))
+  (Planet. (util/hash-nth planetClasses) (util/rand-int1 8) (util/hash-nth planetFeatures)))
 
 (defn createSystem [name]
-  (system. name
-           (into [] (for [_ (range (util/rand-int1 4))]
-                      (test.map/createPlanet)))
-           (util/rand-int1 8)
-           (rand-nth systemFeatures)))
+  (PSystem. name
+            (into [] (for [_ (range (util/rand-int1 4))]
+                       (test.map/createPlanet)))
+            (util/rand-int1 8)
+            (rand-nth systemFeatures)
+            nil ))
 
 
 (defn createMap [[dimX dimY]]
- (into {} (for [x (range dimX)
-                y (range dimY)]
-            [[x y] (ref nil)])))
+  (into [] (for [x (range dimX)
+                 y (range dimY)]
+             [[x y] (agent nil)])))
 
-;(def testUni (universe. (createMap [20 20]) [] [] []))
+(def testUni (Universe. (createMap [20 20]) [] ))
 
-(defn placeSystems [nr uni]
-  (map (fn [refToLoc]
-           (sync nil
-                 (ref-set (get (:starMap uni) refToLoc) (createSystem (rand-nth systemName)))))
-         (test.util/getUniqueRndKey nr (:starMap uni))))
+(defn placeSystems [uni nr]
+  (doall
+    (map 
+      #(send (get (:starMap uni) %1)  (createSystem (rand-nth systemName)))
+      (test.util/getUniqueRndKey (:starMap uni) nr))))
+
+(defn getAllSystems [uni]
+  (let [starMap (:starMap uni)]
+    (reduce #() starMap)
+  )
+  )
+
+
+
 
