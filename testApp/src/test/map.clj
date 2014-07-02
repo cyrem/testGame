@@ -2,9 +2,9 @@
   (:require [test.util :as util]))
 
 (def planetFeatures {"c" 0 "d" 0})
-(def planetClasses  {"a" "b"})
-(def systemName ["blub" "sadf"])
-(def systemFeatures ["asdf" "fghf"])
+(def planetClasses  {"Desert" "Ice" "Terran" "Vulcan"})
+(def systemName ["Alpha Centauri" "Sol" "Alpha Proxima" "Deneb"])
+(def systemFeatures {"asdf" "fghf"})
 
 (defrecord Universe [starMap civList])
 (defrecord PSystem [name planets solarStr features owner])
@@ -14,12 +14,12 @@
 (defn createPlanet []
   (Planet. (util/hash-nth planetClasses) (util/rand-int1 8) (util/hash-nth planetFeatures)))
 
-(defn createSystem [name]
-  (PSystem. name
+(defn createSystem [_]
+  (PSystem. (rand-nth systemName)
             (into [] (for [_ (range (util/rand-int1 4))]
                        (test.map/createPlanet)))
-            (util/rand-int1 8)
-            (rand-nth systemFeatures)
+            (util/rand-int1 5)
+            (util/hash-nth systemFeatures)
             nil ))
 
 
@@ -28,20 +28,20 @@
                  y (range dimY)]
              [[x y] (agent nil)])))
 
-(def testUni (Universe. (createMap [20 20]) [] ))
+(def testUni (Universe. (createMap [3 3]) [] ))
 
 (defn placeSystems [uni nr]
   (doall
     (map 
-      #(send (get (:starMap uni) %1)  (createSystem (rand-nth systemName)))
-      (test.util/getUniqueRndKey (:starMap uni) nr))))
+      #(do
+         (send (second  %1) createSystem ))
+      (util/getUniqueRndKey (:starMap uni) nr))))
 
 (defn getAllSystems [uni]
-  (let [starMap (:starMap uni)]
-    (reduce #() starMap)
-  )
-  )
-
+  (reduce #(when (second %2)
+             (conj %1 (first %2)))
+          []
+          (:starMap uni)))
 
 
 
