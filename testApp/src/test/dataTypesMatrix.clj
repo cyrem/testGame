@@ -11,6 +11,8 @@
 
 
 (defrecord XYPoint [coords])
+(defn makeXYPoint [x y]
+  (matrix [x y]))
 
 (defprotocol RectangleOps
   (split [this] "splits the rectangle into  4 sectors, returns them as vectors")
