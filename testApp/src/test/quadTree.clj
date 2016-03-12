@@ -40,18 +40,19 @@
 
 (defn delete [node val])
 
-(defn subDivide [loc]
-  (let [unzippedNode (zip/node loc)
-        splitted (split ^Rectangle (:b unzippedNode))
-        newDepth (inc (:d unzippedNode))]
-    (-> loc
-      (zip/append-child  (->QuadNode [] newDepth (nth splitted 0) []))
-      (zip/append-child  (->QuadNode [] newDepth (nth splitted 1) []))
-      (zip/append-child  (->QuadNode [] newDepth (nth splitted 2) []))
-      (zip/append-child  (->QuadNode [] newDepth (nth splitted 3) []))
-      (zip/root)
-      (zipperCreate)
-      )))
+;(defn subDivide [loc]
+;  (let [unzippedNode (zip/node loc)
+;        splitted (split ^Rectangle (:b unzippedNode))
+;        newDepth (inc (:d unzippedNode))]
+;    (-> 
+;      loc
+;      (zip/append-child  (->QuadNode [] newDepth (nth splitted 0) []))
+;      (zip/append-child  (->QuadNode [] newDepth (nth splitted 1) []))
+;      (zip/append-child  (->QuadNode [] newDepth (nth splitted 2) []))
+;      (zip/append-child  (->QuadNode [] newDepth (nth splitted 3) []))
+;      (zip/root)
+;      (zipperCreate)
+;      )))
 
 
 (defn findWithBounds [node ^Rectangle inner]
@@ -109,25 +110,50 @@
 (defn buildQuadTree [^QuadNode node]
   (cond (< (:d node) (:mD node)) (let [splitted (split ^Rectangle (:b node))
                                        newDepth (inc (:d node))]
-                                   (->QuadNode  (:o node) (:d node) (:mD node) (:b node)[(buildQuadTree (->QuadNode [] newDepth (:mD node) (nth splitted 0) []))
-                                                                                         (buildQuadTree (->QuadNode [] newDepth (:mD node) (nth splitted 1) []))
-                                                                                         (buildQuadTree (->QuadNode [] newDepth (:mD node) (nth splitted 2) []))
-                                                                                         (buildQuadTree (->QuadNode [] newDepth (:mD node) (nth splitted 3) []))]))
+                                   (QuadNode.  (:o node) (:d node) (:mD node) (:b node)[(buildQuadTree (QuadNode. [] newDepth (:mD node) (nth splitted 0) []))
+                                                                                         (buildQuadTree (QuadNode. [] newDepth (:mD node) (nth splitted 1) []))
+                                                                                         (buildQuadTree (QuadNode. [] newDepth (:mD node) (nth splitted 2) []))
+                                                                                         (buildQuadTree (QuadNode. [] newDepth (:mD node) (nth splitted 3) []))]))
         (= (:d node) (:mD node)) (let [splitted (split ^Rectangle (:b node))
                                        newDepth (inc (:d node))]
-                                   (->QuadNode  (:o node) (:d node) (:mD node) (:b node) []))))
+                                   (QuadNode.  (:o node) (:d node) (:mD node) (:b node) []))))
 
 
-(def tR (->Rectangle (->XYPoint (matrix [0 0])) (->XYPoint (matrix [100 100]))))
-(def tR2 (->Rectangle (->XYPoint (matrix [6 6])) (->XYPoint (matrix [20 1]))))
+(def tR (Rectangle. (XYPoint. (matrix [0 0])) (XYPoint. (matrix [100 100]))))
+(def tR2 (Rectangle. (XYPoint. (matrix [6 6])) (XYPoint. (matrix [20 1]))))
 
-(def q (->QuadNode [] 0 4 (->Rectangle
-                            (->XYPoint (matrix [0 0]))
-                            (->XYPoint (matrix  [100 100]))) []))
+(def q (QuadNode. [] 0 4 (Rectangle.
+                            (XYPoint. (matrix [0 0]))
+                            (XYPoint. (matrix  [100 100]))) []))
 
-(def bQuad (buildQuadTree q))
-(def zipCr (zipperCreate bQuad))
-(def zipAg (agent zipCr))
+
+;{:depth 0 :maxDepth 4 :nw nil :ne nil :sw nil :se nil}
+;{:depth 0 :maxDepth 4 :c nil}
+;(defrecord TestNode[d md c])
+
+(definterface TestNodeI
+  ;(getC [])
+  (setC [v]))
+(deftype TestNode2 [d md ^:volatile-mutable c]
+  TestNodeI
+  ;(get-name [this] (. this lname))
+  (setC [this v] (set! (.c this) v))
+  )
+
+(defn buildQ [depth maxDepth]
+  (if (< depth maxDepth)
+   
+    
+    (println "asdf")
+    )
+  )
+
+
+
+
+;(def bQuad (buildQuadTree q))
+;(def zipCr (zipperCreate bQuad))
+;(def zipAg (agent zipCr))
 
 
 

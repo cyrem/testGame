@@ -19,7 +19,7 @@
 
 (def windX 800)
 (def windY 600)
-(def img (ImageIO/read (clojure.java.io/file "C:/Button1.png" )))
+(def img (ImageIO/read (clojure.java.io/file "D:/Button1.png" )))
 
 
 (defprotocol Scan 
