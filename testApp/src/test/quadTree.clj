@@ -55,7 +55,7 @@
 ;      )))
 
 
-(defn findWithBounds [node ^Rectangle inner]
+(defn findWithBounds [^QuadNode node ^Rectangle inner]
   "takes node and a rectangle and finds the fitting node"
   (let [unzippedNode (zip/node node)
         nodeBounds(:b unzippedNode)
@@ -64,7 +64,7 @@
         childrenEmpty? (empty? (:c unzippedNode))
         canGoDeeper (< (:d unzippedNode) (:mD unzippedNode))]
     ;    (println childrenEmpty? fitsInThisNode subSector canGoDeeper)
-    (match [childrenEmpty? fitsInThisNode subSector canGoDeeper]
+    (match [childrenEmpty? fitsInThisNode subSector canGoDeeper];catch outside of provided bounds -> -5 1 to 100(x,y)
            [_ false nil _] (zip/up node)
            [_ true _ false] node
            [_ _ :nw true] (recur (-> node
@@ -87,7 +87,7 @@
            :else (throw (Exception. "omgwtfbbq!!112431"))
            )))
 
-(defn getAllElements [node]
+(defn getAllElements [^QuadNode node]
   "returns a list with all objects from this node and all subnodes"  
   (let [intF (fn [n ret]
                (if (zip/end? n)
@@ -100,7 +100,7 @@
     (intF node [])))
 
 
-(defn insert [node val]
+(defn insert [^QuadNode node val]
   (->
     (findWithBounds node val)
     (zip/edit insertIntoQuad val)
@@ -125,28 +125,6 @@
 (def q (QuadNode. [] 0 4 (Rectangle.
                             (XYPoint. (matrix [0 0]))
                             (XYPoint. (matrix  [100 100]))) []))
-
-
-;{:depth 0 :maxDepth 4 :nw nil :ne nil :sw nil :se nil}
-;{:depth 0 :maxDepth 4 :c nil}
-;(defrecord TestNode[d md c])
-
-(definterface TestNodeI
-  ;(getC [])
-  (setC [v]))
-(deftype TestNode2 [d md ^:volatile-mutable c]
-  TestNodeI
-  ;(get-name [this] (. this lname))
-  (setC [this v] (set! (.c this) v))
-  )
-
-(defn buildQ [depth maxDepth]
-  (if (< depth maxDepth)
-   
-    
-    (println "asdf")
-    )
-  )
 
 
 
