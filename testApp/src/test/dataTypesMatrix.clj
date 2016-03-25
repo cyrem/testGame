@@ -13,53 +13,62 @@
   (toString [_] 
            (pr-str coords)))
 
-(defprotocol RectangleOps
-  (split [this] "splits the rectangle into  4 sectors, returns them as vectors")
-  (getSector [this p] "returns the sector within the rectangle belongs")
-  (within? [this p] "checks if the rectangle is complete inside")
-  (intersect? [this p] "checks intersection"))
-
-
-
 
 (deftype Rectangle [^XYPoint pos ^XYPoint size]
-  RectangleOps
-  (split[this]
-    (let [midPoint  (* (.coords size) 0.5)]
-      [(Rectangle. (->XYPoint (.coords pos)) (->XYPoint midPoint));oben links
-       (Rectangle. (->XYPoint (+ (.coords pos) (* [0.5 0] (.coords size)) )) (->XYPoint  (* [1 0.5] (.coords size)) ));oben rechts
-       (Rectangle. (->XYPoint (+ (.coords pos) (* [0 0.5] (.coords size)) )) (->XYPoint (* [0.5 1] (.coords size))));unten links
-       (Rectangle. (->XYPoint  midPoint) (->XYPoint (:coords size))) ;unten rechts
-       ]))
-  
-  (within? [^Rectangle this p]
-    (let [^XYPoint posThis (.coords ^XYPoint (.pos this))
-          ^XYPoint sizeThis (.coords ^XYPoint(.size this))
-          ^XYPoint posP (.coords ^XYPoint(.pos ^Rectangle p))
-          ^XYPoint sizeP (.coords ^XYPoint(.size ^Rectangle p))]
-      (and 
-        (>= (first posP) (first posThis)) ;linke seite größer als äußeres
-        (<= (+ (first sizeP) (first posP)) (+ (first sizeThis) (first posThis))) ;rechte seite kleiner als...
-        (>= (second posP) (second posThis)) ;obere seite unter dem äußeren
-        (<= (+ (second sizeP) (second posP)) (+ (second sizeThis) (second posThis))) ; untere Seite über dem Äußeren
-      )
-      ))
-  
-   
-   (intersect? [this p]
-     (let [^XYPoint posThis (.coords ^XYPoint(.pos ^Rectangle this))
-           ^XYPoint sizeThis (.coords ^XYPoint(.size ^Rectangle this))
-           ^XYPoint posP (.coords ^XYPoint(.pos ^Rectangle p))
-           ^XYPoint sizeP (.coords ^XYPoint(.size ^Rectangle p))]
-       (not (or (> (first posThis) (+ (first posP) (first sizeP)))
-                (< (+ (first posThis) (first sizeThis)) (first posP))
-                (> (second posThis) (+ (second posP) (second sizeP)))
-                (< (+ (second posThis) (second sizeThis)) (second posP))))
-       ))
-   
-   ; auf matrizen anpassen
-   (getSector [this p]
-     (when (within? this p)
+  Object
+  (toString [_] 
+    (pr-str pos size)))
+
+
+(defmacro with-rec-access[recBody recInside & body]
+  `(let [posThis# (.coords ^XYPoint (.pos ~recBody))
+         sizeThis# (.coords ^XYPoint (.size ~recBody))
+         posP# (.coords ^XYPoint (.pos ~recInside))
+         sizeP# (.coords ^XYPoint (.size ~recInside))
+         
+         ~'maxRecBodyX (+ (first posThis#) (first sizeThis#))
+         ~'maxRecBodyY (+ (second posThis#) (second sizeThis#))
+         ~'minRecBodyX (first posThis#)
+         ~'minRecBodyY (second posThis#)
+         
+         ~'maxRecInsideX (+ (first posP#) (first sizeP#))
+         ~'maxRecInsideY (+ (second posP#) (second sizeP#))
+         ~'minRecInsideX (first posP#)
+         ~'minRecInsideY (second posP#)]
+     ~@body))
+
+(defn split [^Rectangle rec]
+  "splits the rectangle into  4 sectors, returns them as vectors"
+(let [pos (.pos rec)
+      size (.size rec)
+      midPoint  (* (.coords ^XYPoint size) 0.5)]
+    [(Rectangle. (->XYPoint (.coords ^XYPoint pos)) (->XYPoint midPoint));oben links
+   (Rectangle. (->XYPoint (+ (.coords ^XYPoint pos) (* [0.5 0] (.coords ^XYPoint size)) )) (->XYPoint  (* [1 0.5] (.coords ^XYPoint size)) ));oben rechts
+   (Rectangle. (->XYPoint (+ (.coords ^XYPoint pos) (* [0 0.5] (.coords ^XYPoint size)) )) (->XYPoint (* [0.5 1] (.coords ^XYPoint size))));unten links
+   (Rectangle. (->XYPoint  midPoint) (->XYPoint (.coords ^XYPoint size))) ;unten rechts
+   ]))
+
+(defn within? [^Rectangle this ^Rectangle p] 
+  "checks if the rectangle is complete inside"
+(with-rec-access this p
+  (and
+    (>= minRecInsideX minRecBodyX)
+    (<= maxRecInsideX maxRecBodyX)
+    (<= maxRecInsideY maxRecBodyY)
+    (>= minRecInsideY minRecBodyY))))
+
+(defn intersect? [^Rectangle this ^Rectangle p] 
+  "checks intersection"
+  (with-rec-access this p
+    (not (or (> minRecBodyX maxRecInsideX)
+             (< maxRecBodyX minRecInsideX)
+             (> minRecBodyY maxRecInsideY)
+             (< maxRecBodyY minRecInsideY))
+)))
+
+(defn getSector [^Rectangle this ^Rectangle p] 
+  "returns the sector within the rectangle belongs"
+  (when (within? this p)
        (let [halfP (* [0.5 0.5](.coords ^XYPoint (.size ^Rectangle this)))
              ^int vertMid (second halfP)
              ^int horMid (first halfP)
@@ -78,33 +87,6 @@
                 [true false] :ne
                 [true true] :nw
                 [_ _] nil))))
-   
-   Object
-   (toString [_] 
-     (pr-str pos size))
-   )
-
-
-
-
-
-(defmacro with-rec-access[^Rectangle this ^Rectangle p & body]
-      `(let [^XYPoint ~'posThis (.coords ^XYPoint (.pos  ~this))
-          ^XYPoint ~'sizeThis (.coords ^XYPoint(.size ~this))
-          ^XYPoint ~'posP (.coords ^XYPoint(.pos  ~p))
-          ^XYPoint ~'sizeP (.coords ^XYPoint(.size  ~p))]
-         ~@body
-         )
-  )
-
-(defn trulyWithn? [^Rectangle this ^Rectangle p]
-  (with-rec-access this p
-                         (not (or (> (first posThis) (+ (first posP) (first sizeP)))
-                         (< (+ (first posThis) (first sizeThis)) (first posP))
-                         (> (second posThis) (+ (second posP) (second sizeP)))
-                         (< (+ (second posThis) (second sizeThis)) (second posP))))
-                         )
-  )
 
 
 
